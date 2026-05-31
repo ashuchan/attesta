@@ -1,0 +1,5 @@
+parsers:
+  - {key: xlsx,      enabled: true, priority: 10}
+  - {key: csv,       enabled: true, priority: 20}
+  - {key: pdf,       enabled: true, priority: 30}
+  - {key: plaintext, enabled: true, priority: 99}

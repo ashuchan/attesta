@@ -1,0 +1,7 @@
+Ref,MPN,Manufacturer,Description,Qty,Unit
+U1,STM32F103C8T6,STMicroelectronics,ARM Cortex-M3 MCU,1,pcs
+U2,ESP8266EX,Espressif,WiFi SoC,1,pcs
+C1,GRM188R61A106KE69D,Murata,100uF 10V MLCC,10,pcs
+R1,RC0402FR-0710KL,Yageo,10K Ohm 1% 1/16W,20,pcs
+L1,SRR1260-100Y,Bourns,10uH Power Inductor,2,pcs
+PCB1,,Custom,4-layer PCB 100x80mm,1,pcs

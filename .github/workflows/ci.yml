@@ -1,0 +1,37 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: sourceloop
+          POSTGRES_PASSWORD: sourceloop
+          POSTGRES_DB: sourceloop
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+      - name: Install dependencies
+        run: uv pip install -e ".[dev]" --system
+      - name: Lint
+        run: ruff check src/ tests/
+      - name: Type check
+        run: mypy --strict src/
+      - name: Test
+        env:
+          DATABASE_URL: postgresql+asyncpg://sourceloop:sourceloop@localhost:5432/sourceloop
+          SOURCELOOP_USE_MOCK: "1"
+        run: pytest tests/ -x

@@ -1,0 +1,11 @@
+connectors:
+  - {key: nexar,   enabled: true,  priority: 10}
+  - {key: digikey, enabled: false, priority: 20}
+  - {key: mouser,  enabled: false, priority: 30}
+  - {key: mock,    enabled: false, priority: 99}
+
+nexar:
+  max_rps: 5
+  max_retries: 3
+  monthly_quota_soft_cap: 0
+  limit: 3

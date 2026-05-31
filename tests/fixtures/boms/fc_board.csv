@@ -1,0 +1,7 @@
+Part Number,Mfr,Description,Quantity,Designator
+STM32H743VIT6,STMicroelectronics,H7 MCU Flight Controller,1,U1
+MPU-6000,InvenSense,6-axis IMU,1,U2
+MS5611-01BA03,TE Connectivity,Barometric Pressure Sensor,1,U3
+W25Q128JVSIQ,Winbond,128Mb Flash,2,U4 U5
+TPS62130ARGTR,Texas Instruments,3A Step-Down Converter,3,U6 U7 U8
+Custom mount,,3D printed motor mount,4,M1-M4

@@ -1,0 +1,6 @@
+aggregator: highest_confidence_else_b
+classifiers:
+  - {key: mpn_presence,          enabled: true,  priority: 10}
+  - {key: known_manufacturer,    enabled: true,  priority: 20}
+  - {key: description_heuristic, enabled: true,  priority: 30}
+  - {key: spec_vector,           enabled: false, priority: 40}
