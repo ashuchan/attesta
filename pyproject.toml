@@ -53,6 +53,7 @@ ignore = ["E501"]
 strict = true
 python_version = "3.11"
 mypy_path = "src"
+python_executable = "/usr/bin/python3"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
