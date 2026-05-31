@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sourceloop.domain.bom import BomLine
 from sourceloop.domain.offer import CurrentOffer
@@ -84,7 +84,7 @@ class PlanAssembler:
             id=plan_id,
             tenant_id=tenant_id,
             bom_id=bom_id,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
             tier_a_coverage_pct=coverage,
             status="sourced",
             lines=plan_lines,
