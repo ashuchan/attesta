@@ -1,0 +1,3 @@
+bom_sla_minutes: 90
+default_limit: 3
+default_tenant_slug: founder-internal

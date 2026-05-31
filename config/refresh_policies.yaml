@@ -1,0 +1,13 @@
+A:
+  price_ladder: {volatility: STABLE,      ttl_days: 5,   strategy: LAZY}
+  stock:        {volatility: SEMI_STABLE, ttl_days: 3,   strategy: LAZY}
+  moq:          {volatility: SEMI_STABLE, ttl_days: 14,  strategy: LAZY}
+  lead_time:    {volatility: SEMI_STABLE, ttl_days: 14,  strategy: LAZY}
+  specs:        {volatility: STABLE,      ttl_days: 75,  strategy: LAZY}
+
+B:
+  price_ladder: {volatility: VOLATILE,    ttl_hours: 48, strategy: REFRESH_AHEAD}
+  stock:        {volatility: VOLATILE,    ttl_hours: 48, strategy: LAZY}
+  moq:          {volatility: SEMI_STABLE, ttl_days: 10,  strategy: LAZY}
+  lead_time:    {volatility: SEMI_STABLE, ttl_days: 10,  strategy: LAZY}
+  specs:        {volatility: STABLE,      ttl_days: 75,  strategy: LAZY}
