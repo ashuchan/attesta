@@ -1,12 +1,15 @@
 from __future__ import annotations
-import uuid
+
 import json
+import uuid
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
-from sourceloop.tenancy.context import TenantContext
-from sourceloop.domain.part import PartClass, UnsourcedReason
+
 from sourceloop.domain.offer import PriceLadder
+from sourceloop.domain.part import PartClass, UnsourcedReason
+from sourceloop.tenancy.context import TenantContext
 
 
 def setup_tenant() -> uuid.UUID:
@@ -145,7 +148,6 @@ async def test_offer_repo_get_current_offers():
 
 def test_bom_repo_row_to_domain():
     from sourceloop.repositories.bom_repo import BomRepository
-    from sourceloop.domain.bom import Bom
     tid = setup_tenant()
     session = MagicMock()
     repo = BomRepository(session)
@@ -158,8 +160,8 @@ def test_bom_repo_row_to_domain():
     mock_row.line_count = 5
     mock_row.parse_confidence_avg = 0.9
     mock_row.status = "parsed"
-    mock_row.uploaded_at = datetime.now(timezone.utc)
-    mock_row.parsed_at = datetime.now(timezone.utc)
+    mock_row.uploaded_at = datetime.now(UTC)
+    mock_row.parsed_at = datetime.now(UTC)
 
     bom = repo._row_to_domain(mock_row)
     assert bom.source_filename == "bom.csv"
@@ -343,8 +345,8 @@ async def test_demand_repo_emit_with_customer():
 
 @pytest.mark.asyncio
 async def test_bom_repo_create_bom():
+    from sourceloop.domain.bom import BomLine, ParseResult
     from sourceloop.repositories.bom_repo import BomRepository
-    from sourceloop.domain.bom import ParseResult, BomLine
     tid = setup_tenant()
     session = MagicMock()
     session.add = MagicMock()
@@ -382,8 +384,8 @@ async def test_bom_repo_get_bom_found():
     mock_row.line_count = 5
     mock_row.parse_confidence_avg = 0.9
     mock_row.status = "parsed"
-    mock_row.uploaded_at = datetime.now(timezone.utc)
-    mock_row.parsed_at = datetime.now(timezone.utc)
+    mock_row.uploaded_at = datetime.now(UTC)
+    mock_row.parsed_at = datetime.now(UTC)
 
     mock_result = MagicMock()
     mock_result.scalar_one_or_none.return_value = mock_row
@@ -412,8 +414,8 @@ async def test_bom_repo_get_bom_not_found():
 
 @pytest.mark.asyncio
 async def test_bom_repo_create_lines():
-    from sourceloop.repositories.bom_repo import BomRepository
     from sourceloop.domain.bom import BomLine
+    from sourceloop.repositories.bom_repo import BomRepository
     tid = setup_tenant()
     session = MagicMock()
     session.add_all = MagicMock()
@@ -459,8 +461,8 @@ async def test_offer_repo_upsert_listing():
 
 @pytest.mark.asyncio
 async def test_offer_repo_append_observation():
-    from sourceloop.repositories.offer_repo import OfferRepository
     from sourceloop.domain.offer import OfferObservation, PriceLadder
+    from sourceloop.repositories.offer_repo import OfferRepository
     session = MagicMock()
     mock_result = MagicMock()
     session.execute = AsyncMock(return_value=mock_result)
@@ -468,14 +470,14 @@ async def test_offer_repo_append_observation():
 
     obs = OfferObservation(
         listing_id=uuid.uuid4(), source="api", tier="A",
-        captured_at=datetime.now(timezone.utc),
+        captured_at=datetime.now(UTC),
         normalized_part_key="mpn:STM32", supplier_id="nexar:1",
         category="MCU",
         price_ladder=PriceLadder(rungs=[{"qty": 1, "price": 100.0, "currency": "INR"}]),
         moq=1, lead_time=None, stock=500, specs={"volt": "3.3V"},
         supplier_snapshot={"company_id": "1", "company_name": "Mouser"},
         screenshot_ref=None, confidence=None,
-        field_captured_at={"price_ladder": datetime.now(timezone.utc).isoformat()},
+        field_captured_at={"price_ladder": datetime.now(UTC).isoformat()},
     )
     await repo.append_observation(obs)
     # execute called twice (INSERT + upsert current_offer)
@@ -484,8 +486,8 @@ async def test_offer_repo_append_observation():
 
 @pytest.mark.asyncio
 async def test_offer_repo_append_observation_no_price_ladder():
-    from sourceloop.repositories.offer_repo import OfferRepository
     from sourceloop.domain.offer import OfferObservation
+    from sourceloop.repositories.offer_repo import OfferRepository
     session = MagicMock()
     mock_result = MagicMock()
     session.execute = AsyncMock(return_value=mock_result)
@@ -493,7 +495,7 @@ async def test_offer_repo_append_observation_no_price_ladder():
 
     obs = OfferObservation(
         listing_id=uuid.uuid4(), source="api", tier="A",
-        captured_at=datetime.now(timezone.utc),
+        captured_at=datetime.now(UTC),
         normalized_part_key="mpn:STM32", supplier_id="nexar:1",
         category=None, price_ladder=None, moq=None, lead_time=None,
         stock=None, specs={}, supplier_snapshot={},
@@ -507,8 +509,8 @@ async def test_offer_repo_append_observation_no_price_ladder():
 
 @pytest.mark.asyncio
 async def test_supplier_repo_upsert():
-    from sourceloop.repositories.supplier_repo import SupplierRepository
     from sourceloop.domain.supplier import Supplier
+    from sourceloop.repositories.supplier_repo import SupplierRepository
     session = MagicMock()
     session.execute = AsyncMock(return_value=MagicMock())
     repo = SupplierRepository(session)
@@ -517,7 +519,7 @@ async def test_supplier_repo_upsert():
         supplier_id="nexar:1", name="Mouser", region="IN",
         years_active=None, trade_assurance=None, verified_factory=None,
         response_rate=None, repurchase_rate=None, reliability_score=None,
-        blacklisted=False, updated_at=datetime.now(timezone.utc),
+        blacklisted=False, updated_at=datetime.now(UTC),
     )
     await repo.upsert(supplier)
     session.execute.assert_called_once()
@@ -542,8 +544,8 @@ async def test_plan_repo_get_plan_not_found():
 
 @pytest.mark.asyncio
 async def test_plan_repo_upsert_plan_no_existing():
+    from sourceloop.domain.plan import PlanLine, SourcedPlan
     from sourceloop.repositories.plan_repo import PlanRepository
-    from sourceloop.domain.plan import SourcedPlan, PlanLine
     tid = setup_tenant()
     session = MagicMock()
 
@@ -559,7 +561,7 @@ async def test_plan_repo_upsert_plan_no_existing():
     bom_id = uuid.uuid4()
     plan = SourcedPlan(
         id=plan_id, tenant_id=tid, bom_id=bom_id,
-        generated_at=datetime.now(timezone.utc),
+        generated_at=datetime.now(UTC),
         tier_a_coverage_pct=100.0, status="sourced",
         lines=[
             PlanLine(
@@ -577,8 +579,8 @@ async def test_plan_repo_upsert_plan_no_existing():
 @pytest.mark.asyncio
 async def test_plan_repo_upsert_plan_replaces_existing():
     """When existing plan is found, it's deleted before inserting new one."""
-    from sourceloop.repositories.plan_repo import PlanRepository
     from sourceloop.domain.plan import SourcedPlan
+    from sourceloop.repositories.plan_repo import PlanRepository
     tid = setup_tenant()
     session = MagicMock()
 
@@ -598,7 +600,7 @@ async def test_plan_repo_upsert_plan_replaces_existing():
     plan_id = uuid.uuid4()
     plan = SourcedPlan(
         id=plan_id, tenant_id=tid, bom_id=uuid.uuid4(),
-        generated_at=datetime.now(timezone.utc),
+        generated_at=datetime.now(UTC),
         tier_a_coverage_pct=50.0, status="sourced", lines=[],
     )
     result = await repo.upsert_plan(plan)
@@ -617,7 +619,7 @@ async def test_plan_repo_get_plan_found():
     plan_row.id = uuid.uuid4()
     plan_row.tenant_id = tid
     plan_row.bom_id = uuid.uuid4()
-    plan_row.generated_at = datetime.now(timezone.utc)
+    plan_row.generated_at = datetime.now(UTC)
     plan_row.tier_a_coverage_pct = 100.0
     plan_row.status = "sourced"
 

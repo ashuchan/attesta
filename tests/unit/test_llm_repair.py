@@ -1,7 +1,10 @@
 from __future__ import annotations
+
 import uuid
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from sourceloop.domain.bom import BomLine
 from sourceloop.domain.part import PartClass
 

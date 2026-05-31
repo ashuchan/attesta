@@ -1,13 +1,16 @@
 from __future__ import annotations
-import pytest
+
 import uuid
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
-from sourceloop.sourcing.tier_a_service import SourcingService
-from sourceloop.tenancy.context import TenantContext
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
 from sourceloop.domain.bom import BomLine
 from sourceloop.domain.offer import CurrentOffer, OfferObservation, PriceLadder
 from sourceloop.domain.part import PartClass, UnsourcedReason
+from sourceloop.sourcing.tier_a_service import SourcingService
+from sourceloop.tenancy.context import TenantContext
 
 
 def setup_tenant() -> uuid.UUID:
@@ -40,7 +43,7 @@ def make_current_offer(part_key: str = "mpn:STM32F103C8T6") -> CurrentOffer:
         normalized_part_key=part_key, supplier_id="nexar:1",
         price_ladder=PriceLadder(rungs=[{"qty": 1, "price": 100.0, "currency": "INR"}]),
         moq=1, lead_time=None, stock=100, specs={}, confidence=None,
-        field_captured_at={"price_ladder": datetime.now(timezone.utc).isoformat()},
+        field_captured_at={"price_ladder": datetime.now(UTC).isoformat()},
     )
 
 
@@ -62,7 +65,6 @@ def _make_service_with_mocked_registry(session, use_mock_connector=True):
     else:
         mock_registry.connectors_for = MagicMock(return_value=[])
 
-    from sourceloop.classification.chain import ClassifierChain
     service = SourcingService(session, registry=mock_registry)
     return service
 
@@ -119,7 +121,7 @@ async def test_sourcing_service_cache_miss_calls_connector():
 
     obs = OfferObservation(
         listing_id=uuid.uuid4(), source="api", tier="A",
-        captured_at=datetime.now(timezone.utc),
+        captured_at=datetime.now(UTC),
         normalized_part_key="mpn:STM32F103C8T6", supplier_id="nexar:1",
         category="MCU", price_ladder=None, moq=1, lead_time=None,
         stock=100, specs={}, supplier_snapshot={},
@@ -158,7 +160,7 @@ async def test_sourcing_service_dedup_same_mpn():
 
     obs = OfferObservation(
         listing_id=uuid.uuid4(), source="api", tier="A",
-        captured_at=datetime.now(timezone.utc),
+        captured_at=datetime.now(UTC),
         normalized_part_key="mpn:STM32F103C8T6", supplier_id="nexar:1",
         category=None, price_ladder=None, moq=1, lead_time=None,
         stock=100, specs={}, supplier_snapshot={},

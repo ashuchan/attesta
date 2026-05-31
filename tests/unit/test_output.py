@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 import json
 import uuid
-from datetime import datetime, timezone
-from sourceloop.output.json_renderer import render_plan, render_lint
-from sourceloop.domain.plan import SourcedPlan, PlanLine
-from sourceloop.domain.bom import ParseResult, BomLine
+from datetime import UTC, datetime
+
+from sourceloop.domain.bom import BomLine, ParseResult
 from sourceloop.domain.part import PartClass, UnsourcedReason
+from sourceloop.domain.plan import PlanLine, SourcedPlan
+from sourceloop.output.json_renderer import render_lint, render_plan
 
 
 def make_plan(with_lines: bool = True) -> SourcedPlan:
@@ -30,7 +32,7 @@ def make_plan(with_lines: bool = True) -> SourcedPlan:
         ]
     return SourcedPlan(
         id=plan_id, tenant_id=tid, bom_id=bid,
-        generated_at=datetime.now(timezone.utc),
+        generated_at=datetime.now(UTC),
         tier_a_coverage_pct=50.0, status="sourced", lines=lines,
     )
 

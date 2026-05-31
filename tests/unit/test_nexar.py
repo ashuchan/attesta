@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 import asyncio
-import pytest
 import uuid
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # ─── NexarTokenManager tests ─────────────────────────────────────────────────
 
@@ -33,8 +33,9 @@ async def test_token_manager_fetches_on_first_call():
 
 @pytest.mark.asyncio
 async def test_token_manager_reuses_valid_token():
-    from sourceloop.connectors.nexar import NexarTokenManager
     import time
+
+    from sourceloop.connectors.nexar import NexarTokenManager
     mgr = NexarTokenManager("id", "secret", "http://fake/")
     mgr._access_token = "cached_tok"
     mgr._expires_at = time.monotonic() + 3600  # not expired
@@ -72,7 +73,7 @@ async def test_token_manager_refreshes_on_expiry():
 
 @pytest.mark.asyncio
 async def test_token_manager_raises_after_max_retries():
-    from sourceloop.connectors.nexar import NexarTokenManager, NexarAuthError
+    from sourceloop.connectors.nexar import NexarAuthError, NexarTokenManager
     mgr = NexarTokenManager("id", "secret", "http://fake/")
 
     with patch("sourceloop.connectors.nexar.httpx.AsyncClient") as MockClient:
@@ -82,9 +83,8 @@ async def test_token_manager_raises_after_max_retries():
         instance.post = AsyncMock(side_effect=Exception("connection error"))
         MockClient.return_value = instance
 
-        with patch("asyncio.sleep", AsyncMock()):
-            with pytest.raises(NexarAuthError):
-                await mgr.get_token()
+        with patch("asyncio.sleep", AsyncMock()), pytest.raises(NexarAuthError):
+            await mgr.get_token()
 
 
 @pytest.mark.asyncio

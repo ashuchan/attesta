@@ -1,14 +1,17 @@
 from __future__ import annotations
+
 import io
-import pytest
+from pathlib import Path
+
 import openpyxl
+import pytest
+
 from sourceloop.parsing.base import ParseSource, RawRowSet
-from sourceloop.parsing.parsers.xlsx_parser import XlsxParser
+from sourceloop.parsing.normalizer import _match_header, normalize
 from sourceloop.parsing.parsers.csv_parser import CsvParser
 from sourceloop.parsing.parsers.pdf_parser import PdfParser
 from sourceloop.parsing.parsers.plaintext_parser import PlaintextParser
-from sourceloop.parsing.normalizer import normalize, _match_header
-from pathlib import Path
+from sourceloop.parsing.parsers.xlsx_parser import XlsxParser
 
 FIXTURES = Path(__file__).parent.parent / "fixtures" / "boms"
 

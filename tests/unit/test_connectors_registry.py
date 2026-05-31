@@ -1,7 +1,8 @@
 from __future__ import annotations
-import pytest
+
 import uuid
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from sourceloop.domain.bom import BomLine
 from sourceloop.domain.part import PartClass
 
@@ -17,8 +18,8 @@ def make_line(mpn: str = "STM32F103C8T6") -> BomLine:
 
 
 def _make_registry_with_mock(use_mock: bool = True):
-    from sourceloop.connectors.registry import ConnectorRegistry
     from sourceloop.connectors.mock import MockConnector
+    from sourceloop.connectors.registry import ConnectorRegistry
     with patch("sourceloop.connectors.registry.get_connectors_config") as mock_cfg, \
          patch("sourceloop.connectors.registry.get_env") as mock_env, \
          patch.object(MockConnector, "enabled", use_mock):
@@ -76,8 +77,9 @@ def test_registry_connectors_for_returns_empty_for_unsupported():
 
 
 def test_digikey_stub_returns_empty():
-    from sourceloop.connectors.digikey import DigiKeyConnector
     import asyncio
+
+    from sourceloop.connectors.digikey import DigiKeyConnector
     connector = DigiKeyConnector()
     line = make_line()
     result = asyncio.run(connector.fetch(line))
@@ -85,8 +87,9 @@ def test_digikey_stub_returns_empty():
 
 
 def test_mouser_stub_returns_empty():
-    from sourceloop.connectors.mouser import MouserConnector
     import asyncio
+
+    from sourceloop.connectors.mouser import MouserConnector
     connector = MouserConnector()
     line = make_line()
     result = asyncio.run(connector.fetch(line))

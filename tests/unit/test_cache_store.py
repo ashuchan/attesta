@@ -1,8 +1,11 @@
 from __future__ import annotations
-import pytest
+
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
 from sourceloop.cache.store import OfferStore
 from sourceloop.domain.offer import CurrentOffer, OfferObservation, PriceLadder
 
@@ -10,9 +13,9 @@ from sourceloop.domain.offer import CurrentOffer, OfferObservation, PriceLadder
 def make_current_offer(part_key: str = "mpn:STM32F103C8T6", fresh: bool = True) -> CurrentOffer:
     from datetime import timedelta
     if fresh:
-        ts = datetime.now(timezone.utc).isoformat()
+        ts = datetime.now(UTC).isoformat()
     else:
-        ts = (datetime.now(timezone.utc) - timedelta(days=10)).isoformat()
+        ts = (datetime.now(UTC) - timedelta(days=10)).isoformat()
     return CurrentOffer(
         listing_id=uuid.uuid4(), latest_obs_id=uuid.uuid4(),
         normalized_part_key=part_key, supplier_id="nexar:1",
@@ -25,14 +28,14 @@ def make_current_offer(part_key: str = "mpn:STM32F103C8T6", fresh: bool = True) 
 def make_observation(part_key: str = "mpn:STM32F103C8T6") -> OfferObservation:
     return OfferObservation(
         listing_id=uuid.uuid4(), source="api", tier="A",
-        captured_at=datetime.now(timezone.utc),
+        captured_at=datetime.now(UTC),
         normalized_part_key=part_key, supplier_id="nexar:1",
         category="MCU",
         price_ladder=PriceLadder(rungs=[{"qty": 1, "price": 100.0, "currency": "INR"}]),
         moq=1, lead_time=None, stock=500, specs={"volt": "3.3V"},
         supplier_snapshot={"company_id": "1", "company_name": "MockDist"},
         screenshot_ref=None, confidence=None,
-        field_captured_at={"price_ladder": datetime.now(timezone.utc).isoformat()},
+        field_captured_at={"price_ladder": datetime.now(UTC).isoformat()},
     )
 
 

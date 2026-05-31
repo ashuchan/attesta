@@ -1,7 +1,10 @@
 from __future__ import annotations
-import pytest
+
 import uuid
 from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from sourceloop.parsing.base import ParseSource
 from sourceloop.parsing.pipeline import BomParser
 from sourceloop.tenancy.context import TenantContext
@@ -26,6 +29,7 @@ async def test_pipeline_parse_csv():
 @pytest.mark.asyncio
 async def test_pipeline_parse_xlsx():
     import io
+
     import openpyxl
     setup_tenant()
     wb = openpyxl.Workbook()
@@ -116,10 +120,10 @@ async def test_pipeline_unrecognized_columns_no_crash():
 @pytest.mark.asyncio
 async def test_pipeline_llm_repair_called_for_low_confidence_line():
     """Lines with parse_confidence < 0.5 should trigger LLM repair."""
-    import dataclasses
+    from unittest.mock import MagicMock
+
     from sourceloop.parsing.base import RawRowSet
     from sourceloop.parsing.orchestrator import ParserOrchestrator
-    from unittest.mock import MagicMock
 
     setup_tenant()
 

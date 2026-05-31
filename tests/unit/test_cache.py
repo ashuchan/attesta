@@ -64,7 +64,7 @@ def test_tier_b_price_uses_48h_ttl():
 
 def test_naive_datetime_timestamp_handled():
     """Naive (no-tz) ISO timestamp is treated as UTC and still works."""
-    from datetime import timedelta, timezone
+    from datetime import timedelta
     # Naive timestamp (no +00:00 suffix) for a recent time
     recent_naive = (datetime.now(UTC) - timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S")
     offer = make_offer({"price_ladder": recent_naive})
@@ -74,7 +74,7 @@ def test_naive_datetime_timestamp_handled():
 
 def test_policy_with_no_ttl_forces_refresh():
     """A policy with neither ttl_days nor ttl_hours → always refresh."""
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock, patch
     recent = (datetime.now(UTC) - timedelta(days=1)).isoformat()
     offer = make_offer({"price_ladder": recent})
 
