@@ -45,3 +45,5 @@ class CurrentOffer:
     specs: dict[str, Any]
     confidence: float | None
     field_captured_at: dict[str, str]
+    tier: str = "A"                            # needed by Scorable protocol
+    confidence_effective: float | None = None  # read-time freshness-decayed score (never persisted)

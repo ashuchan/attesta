@@ -1,0 +1,5 @@
+# Compact DSL: when <predicate> then <strategy_name>
+# Evaluated in order; first match wins.
+# Step 3 adds: - {when: tier_b, then: confidence_strict}
+- when: always
+  then: confidence_tier_a

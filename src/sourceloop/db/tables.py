@@ -117,6 +117,7 @@ class SourcedPlanRow(Base):
     generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     tier_a_coverage_pct: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="sourced")
+    confidence_summary: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
 
 class PlanLineRow(Base):
@@ -232,6 +233,7 @@ class CurrentOfferRow(Base):
     specs: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     confidence: Mapped[float | None] = mapped_column(Float)
     field_captured_at: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    tier: Mapped[str] = mapped_column(String(1), nullable=False, server_default="A")
 
 
 class HotnessRow(Base):
@@ -240,3 +242,27 @@ class HotnessRow(Base):
     category: Mapped[str | None] = mapped_column(String(200))
     score: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class ScoreLogRow(Base):
+    """
+    Append-only provenance log for every score computed at write-time.
+    Partitioned by captured_at (same cadence as offer_observation).
+    """
+    __tablename__ = "score_log"
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), nullable=False, default=uuid.uuid4
+    )
+    captured_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, primary_key=True
+    )
+    listing_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("listing.listing_id"), nullable=False
+    )
+    strategy: Mapped[str] = mapped_column(String(100), nullable=False)
+    score: Mapped[float] = mapped_column(Float, nullable=False)
+    band: Mapped[str] = mapped_column(String(20), nullable=False)
+    signals: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    __table_args__ = (
+        UniqueConstraint("id", "captured_at", name="uq_score_log_id_captured"),
+    )

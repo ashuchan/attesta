@@ -1,0 +1,16 @@
+confidence_tier_a:
+  signals: [source_tier, freshness, completeness]
+  weights: {source_tier: 60, freshness: 25, completeness: 15}
+  aggregator: weighted_sum
+  bands: {high: 80, medium: 50}
+  hard_flags: []
+
+# Full strategy — present but inert until disabled signals are enabled (Step 5+).
+# At load, disabled signals are dropped and weights renormalize over the enabled subset.
+# Log: strategy_signal_disabled_dropped for each dropped signal.
+confidence_strict:
+  signals: [source_tier, vision_agreement, part_match, price_sanity, completeness, supplier_trust, freshness]
+  weights: {source_tier: 30, vision_agreement: 20, part_match: 20, price_sanity: 12, completeness: 8, supplier_trust: 6, freshness: 4}
+  aggregator: weighted_sum
+  bands: {high: 80, medium: 50}
+  hard_flags: [conflict_flag]

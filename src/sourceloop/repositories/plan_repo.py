@@ -42,6 +42,7 @@ class PlanRepository(TenantScopedRepository):
             generated_at=plan.generated_at,
             tier_a_coverage_pct=plan.tier_a_coverage_pct,
             status=plan.status,
+            confidence_summary=plan.confidence_summary,
         )
         self._session.add(plan_row)
         await self._session.flush()

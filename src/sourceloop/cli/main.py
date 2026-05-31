@@ -154,3 +154,108 @@ async def _parse_async(
         click.echo(f"Plan written to {out}", err=True)
     else:
         click.echo(output)
+
+
+@cli.command()
+@click.option("--seed-file", default=None, help="Path to seed_parts.yaml (default: config/seed_parts.yaml)")
+@click.option("--ahead-months", default=3, help="Months of partitions to ensure ahead")
+@click.option("--dry-run", is_flag=True, help="Report which parts would be fetched without spending quota")
+@click.option("--category", default=None, help="Filter seed parts by category")
+@click.option("--limit", default=None, type=int, help="Limit number of parts to warm")
+def warmup(seed_file: str | None, ahead_months: int, dry_run: bool, category: str | None, limit: int | None) -> None:
+    """Pre-warm the offer cache from seed_parts.yaml and ensure DB partitions."""
+    asyncio.run(_warmup_async(seed_file, ahead_months, dry_run, category, limit))
+
+
+async def _warmup_async(
+    seed_file: str | None,
+    ahead_months: int,
+    dry_run: bool,
+    category: str | None,
+    limit: int | None,
+) -> None:
+    from sourceloop.config.loader import get_seed_parts
+    from sourceloop.db.engine import get_engine, get_session_factory
+    from sourceloop.db.partitioning import ensure_partitions
+    from sourceloop.warmup.service import WarmupService
+
+    if dry_run:
+        click.echo("DRY RUN — no Nexar calls will be made.", err=True)
+
+    # Step 1: ensure partitions (idempotent DDL — safe even in dry-run)
+    engine = get_engine()
+    async with engine.connect() as conn:
+        created = await ensure_partitions(conn, ahead_months=ahead_months)
+        await conn.commit()
+    click.echo(f"Partition statements executed: {created}", err=True)
+
+    # Step 2: load seed parts
+    if seed_file:
+        import yaml
+        with open(seed_file) as f:
+            raw = yaml.safe_load(f)
+        parts = raw.get("parts", [])
+    else:
+        parts = get_seed_parts()
+
+    if category:
+        parts = [p for p in parts if p.get("category", "").lower() == category.lower()]
+    if limit:
+        parts = parts[:limit]
+
+    if not parts:
+        click.echo("No seed parts found.", err=True)
+        return
+
+    click.echo(f"Seed parts to warm: {len(parts)}", err=True)
+
+    if dry_run:
+        # Check cache without fetching
+        factory = get_session_factory()
+        async with factory() as session:
+            service = WarmupService(session)
+            would_fetch, already_warm = await service.dry_run_parts(parts)
+        click.echo(
+            f"Dry-run complete: {already_warm} already warm (would skip), "
+            f"{would_fetch} would be fetched.",
+            err=True,
+        )
+        return
+
+    # Step 3: warm (real fetch)
+    factory = get_session_factory()
+    async with factory() as session:
+        service = WarmupService(session)
+        results = await service.warm_parts(parts)
+        await session.commit()
+
+    total_obs = sum(results.values())
+    click.echo(
+        f"Warmup complete: {len(parts)} parts, {total_obs} observations appended.",
+        err=True,
+    )
+    for mpn, count in results.items():
+        click.echo(f"  {mpn}: {count}", err=True)
+
+
+@cli.group("db")
+def db_group() -> None:
+    """Database management commands."""
+
+
+@db_group.command("ensure-partitions")
+@click.option("--ahead-months", default=3, show_default=True, help="Months of partitions to ensure ahead of today")
+def db_ensure_partitions(ahead_months: int) -> None:
+    """Ensure monthly partitions exist for offer_observation, demand_event, score_log."""
+    asyncio.run(_db_ensure_partitions_async(ahead_months))
+
+
+async def _db_ensure_partitions_async(ahead_months: int) -> None:
+    from sourceloop.db.engine import get_engine
+    from sourceloop.db.partitioning import ensure_partitions
+
+    engine = get_engine()
+    async with engine.connect() as conn:
+        created = await ensure_partitions(conn, ahead_months=ahead_months)
+        await conn.commit()
+    click.echo(f"Partition statements executed: {created} (idempotent — safe to re-run)", err=True)

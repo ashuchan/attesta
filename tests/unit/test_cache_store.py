@@ -64,30 +64,44 @@ def test_needs_refresh_stale_offer_returns_true():
     assert store.needs_refresh(stale_offer, tier="A", field="price_ladder")
 
 
+def _make_async_session():
+    """Create a MagicMock session with async begin_nested support."""
+    from unittest.mock import AsyncMock as AM, MagicMock as MM
+    session = MM()
+    # begin_nested must return an awaitable that returns a savepoint context manager
+    sp = MM()
+    sp.commit = AM()
+    sp.rollback = AM()
+    session.begin_nested = AM(return_value=sp)
+    return session
+
+
 @pytest.mark.asyncio
 async def test_append_upserts_supplier_and_calls_repo():
-    session = MagicMock()
+    session = _make_async_session()
     store = OfferStore(session)
     store._supplier_repo.upsert = AsyncMock()
     store._offer_repo.upsert_listing = AsyncMock(return_value=uuid.uuid4())
-    store._offer_repo.append_observation = AsyncMock()
+    store._offer_repo.append_observation_for_listing = AsyncMock(return_value=uuid.uuid4())
+    store._score_log_repo.write = AsyncMock()
 
     obs = make_observation()
     await store.append(obs)
 
     store._supplier_repo.upsert.assert_called_once()
     store._offer_repo.upsert_listing.assert_called_once()
-    store._offer_repo.append_observation.assert_called_once_with(obs)
+    store._offer_repo.append_observation_for_listing.assert_called_once()
 
 
 @pytest.mark.asyncio
 async def test_append_is_never_update():
-    """append_observation must be called (insert), never update methods."""
-    session = MagicMock()
+    """append_observation_for_listing must be called (insert), never update methods."""
+    session = _make_async_session()
     store = OfferStore(session)
     store._supplier_repo.upsert = AsyncMock()
     store._offer_repo.upsert_listing = AsyncMock(return_value=uuid.uuid4())
-    store._offer_repo.append_observation = AsyncMock()
+    store._offer_repo.append_observation_for_listing = AsyncMock(return_value=uuid.uuid4())
+    store._score_log_repo.write = AsyncMock()
 
     obs1 = make_observation()
     obs2 = make_observation()
@@ -96,17 +110,18 @@ async def test_append_is_never_update():
     await store.append(obs2)
 
     # Both observations appended — never "update"
-    assert store._offer_repo.append_observation.call_count == 2
+    assert store._offer_repo.append_observation_for_listing.call_count == 2
 
 
 @pytest.mark.asyncio
 async def test_append_supplier_uses_snapshot_name():
     """Supplier name is taken from supplier_snapshot, not supplier_id."""
-    session = MagicMock()
+    session = _make_async_session()
     store = OfferStore(session)
     store._supplier_repo.upsert = AsyncMock()
     store._offer_repo.upsert_listing = AsyncMock(return_value=uuid.uuid4())
-    store._offer_repo.append_observation = AsyncMock()
+    store._offer_repo.append_observation_for_listing = AsyncMock(return_value=uuid.uuid4())
+    store._score_log_repo.write = AsyncMock()
 
     obs = make_observation()
     await store.append(obs)

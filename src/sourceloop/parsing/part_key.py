@@ -19,6 +19,16 @@ def _normalize_description(desc: str) -> str:
     return " ".join(tokens)
 
 
+def build_part_key(mpn: str, manufacturer: str | None = None) -> str:
+    """
+    Build normalized_part_key from an MPN string directly (no BomLine).
+    Used by WarmupService and other non-parsing callers.
+    """
+    if mpn and mpn.strip():
+        return f"mpn:{_normalize_mpn(mpn.strip())}"
+    return f"desc:{hashlib.sha1((manufacturer or 'unknown').encode()).hexdigest()[:16]}"
+
+
 def derive(line: BomLine) -> str:
     """
     Derive normalized_part_key for a BomLine.

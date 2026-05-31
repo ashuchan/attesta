@@ -45,11 +45,17 @@ class SourcingService:
         registry: ConnectorRegistry | None = None,
         classifier: ClassifierChain | None = None,
         max_concurrency: int = _DEFAULT_CONCURRENCY,
+        confidence_provider: object | None = None,
     ) -> None:
         self._session = session
         self._registry = registry or ConnectorRegistry()
         self._classifier = classifier or ClassifierChain()
-        self._store = OfferStore(session)
+        # confidence_provider is injected; defaults to EngineConfidenceProvider lazily
+        # so unit tests that don't need scoring can pass None or a stub without touching disk.
+        if confidence_provider is None:
+            from sourceloop.scoring.factory import build_confidence_provider as _build
+            confidence_provider = _build()
+        self._store = OfferStore(session, confidence_provider=confidence_provider)  # type: ignore[arg-type]
         self._bom_repo = BomRepository(session)
         self._plan_repo = PlanRepository(session)
         self._demand_repo = DemandRepository(session)

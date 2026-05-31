@@ -1,0 +1,27 @@
+# Seed parts for warmup — high-demand MPNs to pre-warm the cache.
+# category is optional; helps classification signal accuracy.
+parts:
+  - mpn: STM32F103C8T6
+    manufacturer: STMicroelectronics
+    category: MCU
+  - mpn: ESP8266EX
+    manufacturer: Espressif
+    category: WiFi SoC
+  - mpn: GRM188R61A106KE69D
+    manufacturer: Murata
+    category: Capacitor
+  - mpn: RC0402FR0710KL
+    manufacturer: Yageo
+    category: Resistor
+  - mpn: SRR1260100Y
+    manufacturer: Bourns
+    category: Inductor
+  - mpn: STM32H743VIT6
+    manufacturer: STMicroelectronics
+    category: MCU
+  - mpn: MPU6000
+    manufacturer: InvenSense
+    category: IMU
+  - mpn: W25Q128JVSIQ
+    manufacturer: Winbond
+    category: Flash Memory

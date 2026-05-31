@@ -13,6 +13,9 @@ from .models import (
     EnvSettings,
     ParsersConfig,
     RefreshPoliciesConfig,
+    RuleEntry,
+    ScoringStrategyEntry,
+    WarmupConfig,
 )
 
 CONFIG_DIR = Path(__file__).parent.parent.parent.parent / "config"
@@ -65,3 +68,29 @@ def get_refresh_policies() -> RefreshPoliciesConfig:
 @lru_cache
 def get_app_settings() -> AppSettings:
     return AppSettings(**_load_yaml("settings.yaml"))
+
+
+@lru_cache
+def get_scoring_strategies() -> dict[str, ScoringStrategyEntry]:
+    raw = _load_yaml("scoring_strategies.yaml")
+    return {name: ScoringStrategyEntry(**cfg) for name, cfg in raw.items()}
+
+
+@lru_cache
+def get_scoring_rules() -> list[RuleEntry]:
+    raw = _load_yaml("rules.yaml")
+    return [RuleEntry(**r) for r in raw]
+
+
+@lru_cache
+def get_warmup_config() -> WarmupConfig:
+    try:
+        return WarmupConfig(**_load_yaml("warmup.yaml"))
+    except FileNotFoundError:
+        return WarmupConfig()
+
+
+@lru_cache
+def get_seed_parts() -> list[dict]:  # type: ignore[type-arg]
+    raw = _load_yaml("seed_parts.yaml")
+    return raw.get("parts", [])
