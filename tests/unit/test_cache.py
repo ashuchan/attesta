@@ -62,6 +62,54 @@ def test_tier_b_price_uses_48h_ttl():
     assert not needs_refresh(offer, tier="A", field="price_ladder")
 
 
+def test_naive_datetime_timestamp_handled():
+    """Naive (no-tz) ISO timestamp is treated as UTC and still works."""
+    from datetime import timedelta, timezone
+    # Naive timestamp (no +00:00 suffix) for a recent time
+    recent_naive = (datetime.now(UTC) - timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S")
+    offer = make_offer({"price_ladder": recent_naive})
+    # Should not need refresh (1h old, 5d TTL)
+    assert not needs_refresh(offer, tier="A", field="price_ladder")
+
+
+def test_policy_with_no_ttl_forces_refresh():
+    """A policy with neither ttl_days nor ttl_hours → always refresh."""
+    from unittest.mock import patch, MagicMock
+    recent = (datetime.now(UTC) - timedelta(days=1)).isoformat()
+    offer = make_offer({"price_ladder": recent})
+
+    mock_field_policy = MagicMock()
+    mock_field_policy.ttl_days = None
+    mock_field_policy.ttl_hours = None
+
+    mock_tier_policies = {"price_ladder": mock_field_policy}
+    mock_policies = MagicMock()
+    mock_policies.A = mock_tier_policies
+
+    with patch("sourceloop.cache.refresh.get_refresh_policies", return_value=mock_policies):
+        assert needs_refresh(offer, tier="A", field="price_ladder")
+
+
+def test_unknown_tier_forces_refresh():
+    """Unknown tier string → always refresh."""
+    recent = (datetime.now(UTC) - timedelta(days=1)).isoformat()
+    offer = make_offer({"price_ladder": recent})
+    assert needs_refresh(offer, tier="UNKNOWN_TIER", field="price_ladder")
+
+
+def test_unknown_field_forces_refresh():
+    """Known tier but unknown field → always refresh."""
+    recent = (datetime.now(UTC) - timedelta(days=1)).isoformat()
+    offer = make_offer({"price_ladder": recent})
+    assert needs_refresh(offer, tier="A", field="unknown_field_xyz")
+
+
+def test_invalid_timestamp_forces_refresh():
+    """Malformed timestamp → always refresh."""
+    offer = make_offer({"price_ladder": "not-a-date"})
+    assert needs_refresh(offer, tier="A", field="price_ladder")
+
+
 def test_null_confidence_returns_none():
     from sourceloop.domain.offer import OfferObservation
     provider = NullConfidence()
