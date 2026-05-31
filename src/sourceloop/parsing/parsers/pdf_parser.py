@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 import io
+
 from sourceloop.parsing.base import ParseSource, RawRowSet
 
 PDF_MAGIC = b"%PDF"

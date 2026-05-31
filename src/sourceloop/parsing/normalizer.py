@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 import re
 import uuid
-from sourceloop.parsing.base import RawRowSet
+
 from sourceloop.domain.bom import BomLine
+from sourceloop.parsing.base import RawRowSet
 
 # Header lexicon: canonical field -> aliases
 HEADER_MAP: dict[str, list[str]] = {

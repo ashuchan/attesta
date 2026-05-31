@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 import re
+
 from sourceloop.classification.base import ClassificationSignal
 from sourceloop.domain.bom import BomLine
 from sourceloop.domain.part import PartClass

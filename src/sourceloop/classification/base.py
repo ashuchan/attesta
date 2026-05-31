@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
+
 from sourceloop.domain.bom import BomLine
 from sourceloop.domain.part import PartClass
 

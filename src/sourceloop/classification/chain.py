@@ -1,10 +1,13 @@
 from __future__ import annotations
-import dataclasses
+
 import structlog
+
 from sourceloop.classification.base import ClassificationSignal, PartClassifier
-from sourceloop.classification.classifiers.mpn_presence import MpnPresenceClassifier
+from sourceloop.classification.classifiers.description_heuristic import (
+    DescriptionHeuristicClassifier,
+)
 from sourceloop.classification.classifiers.known_manufacturer import KnownManufacturerClassifier
-from sourceloop.classification.classifiers.description_heuristic import DescriptionHeuristicClassifier
+from sourceloop.classification.classifiers.mpn_presence import MpnPresenceClassifier
 from sourceloop.classification.classifiers.spec_vector import SpecVectorClassifier
 from sourceloop.config.loader import get_classifiers_config
 from sourceloop.domain.bom import BomLine

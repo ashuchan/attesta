@@ -1,6 +1,9 @@
 from __future__ import annotations
+
 import json
+
 import structlog
+
 from sourceloop.domain.bom import BomLine
 
 log = structlog.get_logger()

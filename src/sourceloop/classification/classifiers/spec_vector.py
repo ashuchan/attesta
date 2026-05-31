@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from sourceloop.classification.base import ClassificationSignal
 from sourceloop.domain.bom import BomLine
 

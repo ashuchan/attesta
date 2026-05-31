@@ -1,10 +1,13 @@
 from __future__ import annotations
+
 import uuid
-import pytest
+
 from sourceloop.classification.chain import ClassifierChain
-from sourceloop.classification.classifiers.mpn_presence import MpnPresenceClassifier
+from sourceloop.classification.classifiers.description_heuristic import (
+    DescriptionHeuristicClassifier,
+)
 from sourceloop.classification.classifiers.known_manufacturer import KnownManufacturerClassifier
-from sourceloop.classification.classifiers.description_heuristic import DescriptionHeuristicClassifier
+from sourceloop.classification.classifiers.mpn_presence import MpnPresenceClassifier
 from sourceloop.domain.bom import BomLine
 from sourceloop.domain.part import PartClass
 

@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 from sourceloop.config.loader import get_parsers_config
 from sourceloop.parsing.base import BomFileParser
-from sourceloop.parsing.parsers.xlsx_parser import XlsxParser
 from sourceloop.parsing.parsers.csv_parser import CsvParser
 from sourceloop.parsing.parsers.pdf_parser import PdfParser
 from sourceloop.parsing.parsers.plaintext_parser import PlaintextParser
+from sourceloop.parsing.parsers.xlsx_parser import XlsxParser
 
 _PARSER_CLASSES: dict[str, type] = {
     "xlsx": XlsxParser,

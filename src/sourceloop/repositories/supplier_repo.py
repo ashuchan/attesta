@@ -1,9 +1,11 @@
 from __future__ import annotations
-from datetime import datetime, timezone
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from sourceloop.db.tables import SupplierRow
 from sourceloop.domain.supplier import Supplier
+
 from .base import AbstractRepository
 
 

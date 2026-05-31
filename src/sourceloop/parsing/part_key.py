@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 import hashlib
 import re
+
 from sourceloop.domain.bom import BomLine
 
 _STRIP_PATTERN = re.compile(r"[-/._\s]+")

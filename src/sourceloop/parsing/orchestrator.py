@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 import structlog
+
 from sourceloop.parsing.base import BomFileParser, ParseSource
 from sourceloop.parsing.registry import ParserRegistry
 

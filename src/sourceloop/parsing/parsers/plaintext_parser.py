@@ -1,6 +1,8 @@
 from __future__ import annotations
-from sourceloop.parsing.base import ParseSource, RawRowSet
+
 import re
+
+from sourceloop.parsing.base import ParseSource, RawRowSet
 
 
 class PlaintextParser:

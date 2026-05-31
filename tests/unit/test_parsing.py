@@ -1,15 +1,16 @@
 from __future__ import annotations
-import pytest
-from sourceloop.parsing.part_key import derive, _normalize_mpn
-from sourceloop.parsing.base import ParseSource, RawRowSet
-from sourceloop.parsing.parsers.xlsx_parser import XlsxParser
-from sourceloop.parsing.parsers.csv_parser import CsvParser
-from sourceloop.parsing.parsers.plaintext_parser import PlaintextParser
-from sourceloop.parsing.orchestrator import ParserOrchestrator, UnsupportedBomFormatError
-from sourceloop.parsing.normalizer import normalize
-from sourceloop.domain.bom import BomLine
+
 import uuid
 
+import pytest
+
+from sourceloop.domain.bom import BomLine
+from sourceloop.parsing.base import ParseSource, RawRowSet
+from sourceloop.parsing.normalizer import normalize
+from sourceloop.parsing.orchestrator import ParserOrchestrator, UnsupportedBomFormatError
+from sourceloop.parsing.parsers.csv_parser import CsvParser
+from sourceloop.parsing.parsers.plaintext_parser import PlaintextParser
+from sourceloop.parsing.part_key import derive
 
 # ─── part_key tests ──────────────────────────────────────────────────────────
 
