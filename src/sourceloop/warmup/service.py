@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from sourceloop.cache.confidence import ConfidenceProvider
 from sourceloop.cache.store import AppendResult, OfferStore
 from sourceloop.connectors.registry import ConnectorRegistry
 from sourceloop.parsing.part_key import build_part_key
@@ -30,8 +31,12 @@ class WarmupService:
         session: AsyncSession,
         registry: ConnectorRegistry | None = None,
         max_concurrency: int = 4,
+        confidence_provider: ConfidenceProvider | None = None,
     ) -> None:
-        self._store = OfferStore(session)
+        if confidence_provider is None:
+            from sourceloop.scoring.factory import build_confidence_provider as _build
+            confidence_provider = _build()
+        self._store = OfferStore(session, confidence_provider=confidence_provider)
         self._registry = registry or ConnectorRegistry()
         self._semaphore = asyncio.Semaphore(max_concurrency)
 
@@ -110,21 +115,27 @@ class WarmupService:
         """
         Dry-run: check cache + TTL for each part without fetching.
         Returns (would_fetch_count, already_warm_count). Zero quota spent.
+        Concurrency-bounded via semaphore (same as warm_parts).
         """
-        would_fetch = 0
-        already_warm = 0
-        for part in parts:
+        counts: list[bool] = []
+
+        async def _check_one(part: dict) -> bool:
+            """Returns True if already warm, False if would fetch."""
             mpn: str = part.get("mpn", "")
             manufacturer: str | None = part.get("manufacturer")
             if not mpn:
-                continue
+                return True  # skip blanks — don't count as needing fetch
             normalized_part_key = build_part_key(mpn=mpn, manufacturer=manufacturer)
-            current_offers = await self._store.get_current(normalized_part_key)
-            if current_offers and not any(
+            async with self._semaphore:
+                current_offers = await self._store.get_current(normalized_part_key)
+            return bool(current_offers) and not any(
                 self._store.needs_refresh(o, tier="A", field="price_ladder")
                 for o in current_offers
-            ):
-                already_warm += 1
-            else:
-                would_fetch += 1
+            )
+
+        results = await asyncio.gather(*[_check_one(p) for p in parts])
+        already_warm = sum(1 for r in results if r)
+        # Subtract blank entries (parts with no mpn) from the total
+        valid = sum(1 for p in parts if p.get("mpn", ""))
+        would_fetch = valid - already_warm
         return would_fetch, already_warm

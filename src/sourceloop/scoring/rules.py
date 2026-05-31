@@ -19,6 +19,12 @@ class RuleSet:
     """
 
     def __init__(self, rules: list[Rule]) -> None:
+        for i, rule in enumerate(rules):
+            if rule.when == "always" and i != len(rules) - 1:
+                raise ValueError(
+                    f"Rule 'when: always' at position {i} is not the last rule — "
+                    "it would shadow all subsequent rules. Move it to the end."
+                )
         self._rules = rules
 
     def select_strategy(self, subject: Scorable, ctx: ScoringContext) -> str:

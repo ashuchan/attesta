@@ -6,6 +6,9 @@ Create Date: 2026-05-31 00:00:00.000000
 """
 from __future__ import annotations
 
+import asyncio
+from datetime import UTC, datetime
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -14,6 +17,10 @@ revision = "0002"
 down_revision = "0001"
 branch_labels = None
 depends_on = None
+
+
+def _next_month(year: int, month: int) -> tuple[int, int]:
+    return (year + 1, 1) if month == 12 else (year, month + 1)
 
 
 def upgrade() -> None:
@@ -30,26 +37,22 @@ def upgrade() -> None:
             PRIMARY KEY (id, captured_at)
         ) PARTITION BY RANGE (captured_at)
     """)
-    op.execute("""
-        CREATE TABLE score_log_2026_05
-        PARTITION OF score_log
-        FOR VALUES FROM ('2026-05-01') TO ('2026-06-01')
-    """)
-    op.execute("""
-        CREATE TABLE score_log_2026_06
-        PARTITION OF score_log
-        FOR VALUES FROM ('2026-06-01') TO ('2026-07-01')
-    """)
-    op.execute("""
-        CREATE TABLE score_log_2026_07
-        PARTITION OF score_log
-        FOR VALUES FROM ('2026-07-01') TO ('2026-08-01')
-    """)
-    op.execute("""
-        CREATE TABLE score_log_2026_08
-        PARTITION OF score_log
-        FOR VALUES FROM ('2026-08-01') TO ('2026-09-01')
-    """)
+
+    # Create partitions for current month + 3 ahead — run-time computed so
+    # the migration stays correct regardless of when it is applied.
+    now = datetime.now(UTC)
+    year, month = now.year, now.month
+    for _ in range(4):
+        ny, nm = _next_month(year, month)
+        from_val = f"{year:04d}-{month:02d}-01"
+        to_val = f"{ny:04d}-{nm:02d}-01"
+        pname = f"score_log_{year:04d}_{month:02d}"
+        op.execute(
+            f"CREATE TABLE {pname} PARTITION OF score_log "
+            f"FOR VALUES FROM ('{from_val}') TO ('{to_val}')"
+        )
+        year, month = ny, nm
+
     op.execute("""
         CREATE TABLE score_log_default
         PARTITION OF score_log DEFAULT
