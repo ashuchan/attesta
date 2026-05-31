@@ -1,0 +1,7 @@
+source_tier:      {enabled: true,  module: scoring.signals.source_tier}
+freshness:        {enabled: true,  module: scoring.signals.freshness}
+completeness:     {enabled: true,  module: scoring.signals.completeness}
+price_sanity:     {enabled: false, module: scoring.signals.price_sanity}
+part_match:       {enabled: false, module: scoring.signals.part_match}
+supplier_trust:   {enabled: false, module: scoring.signals.supplier_trust}
+vision_agreement: {enabled: false, module: scoring.signals.vision_agreement}

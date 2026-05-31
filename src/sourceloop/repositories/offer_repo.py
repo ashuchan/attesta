@@ -59,10 +59,18 @@ class OfferRepository(AbstractRepository[CurrentOffer]):
         row = result.fetchone()
         return row[0] if row else listing_id
 
-    async def append_observation(self, obs: OfferObservation) -> None:
-        """Append-only insert. Never updates an existing observation."""
-        # Use raw SQL for partitioned table insert — SQLAlchemy ORM insert may not
-        # route correctly to the right partition in all versions
+    async def append_observation(self, obs: OfferObservation) -> uuid.UUID:
+        """Append-only insert using obs.listing_id directly. Returns obs_id."""
+        return await self.append_observation_for_listing(obs, obs.listing_id)
+
+    async def append_observation_for_listing(
+        self, obs: OfferObservation, listing_id: uuid.UUID
+    ) -> uuid.UUID:
+        """
+        Append-only insert using the supplied listing_id (may differ from obs.listing_id
+        when the upsert_listing ON CONFLICT returns the existing row's id).
+        Returns obs_id.
+        """
         from sqlalchemy import text
         obs_id = uuid.uuid4()
         await self._session.execute(
@@ -78,7 +86,7 @@ class OfferRepository(AbstractRepository[CurrentOffer]):
             {
                 "obs_id": str(obs_id),
                 "captured_at": obs.captured_at,
-                "listing_id": str(obs.listing_id),
+                "listing_id": str(listing_id),
                 "source": obs.source,
                 "price_ladder": self._ladder_to_json_str(obs.price_ladder),
                 "moq": obs.moq,
@@ -94,7 +102,7 @@ class OfferRepository(AbstractRepository[CurrentOffer]):
         )
         # Upsert current_offer projection to point at this latest obs
         stmt = pg_insert(CurrentOfferRow).values(
-            listing_id=obs.listing_id,
+            listing_id=listing_id,
             latest_obs_id=obs_id,
             normalized_part_key=obs.normalized_part_key,
             supplier_id=obs.supplier_id,
@@ -105,6 +113,7 @@ class OfferRepository(AbstractRepository[CurrentOffer]):
             specs=obs.specs,
             confidence=obs.confidence,
             field_captured_at=obs.field_captured_at,
+            tier=obs.tier,
         ).on_conflict_do_update(
             index_elements=["listing_id"],
             set_={
@@ -116,9 +125,11 @@ class OfferRepository(AbstractRepository[CurrentOffer]):
                 "specs": obs.specs,
                 "confidence": obs.confidence,
                 "field_captured_at": obs.field_captured_at,
+                "tier": obs.tier,
             }
         )
         await self._session.execute(stmt)
+        return obs_id
 
     def _ladder_to_json(self, ladder: PriceLadder | None) -> dict[str, Any] | None:
         if ladder is None:
@@ -141,6 +152,7 @@ class OfferRepository(AbstractRepository[CurrentOffer]):
         ladder = None
         if row.price_ladder:
             ladder = PriceLadder(rungs=row.price_ladder.get("rungs", []))
+        tier = getattr(row, "tier", "A") or "A"
         return CurrentOffer(
             listing_id=row.listing_id,
             latest_obs_id=row.latest_obs_id,
@@ -153,4 +165,5 @@ class OfferRepository(AbstractRepository[CurrentOffer]):
             specs=row.specs or {},
             confidence=row.confidence,
             field_captured_at=row.field_captured_at or {},
+            tier=tier,
         )

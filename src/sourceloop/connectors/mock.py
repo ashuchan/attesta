@@ -65,9 +65,25 @@ class MockConnector:
         return line.normalized_part_key.startswith("mpn:")
 
     async def fetch(self, line: BomLine) -> list[OfferObservation]:
-        offers_data = MOCK_OFFERS.get(line.normalized_part_key, [])
+        """Adapter: delegates to fetch_mpn."""
+        return await self.fetch_mpn(
+            mpn=line.mpn or "",
+            manufacturer=line.manufacturer,
+            normalized_part_key=line.normalized_part_key,
+            category=None,
+        )
+
+    async def fetch_mpn(
+        self,
+        mpn: str,
+        manufacturer: str | None,
+        normalized_part_key: str,
+        category: str | None,
+    ) -> list[OfferObservation]:
+        """Primary fetch primitive — looks up MOCK_OFFERS by normalized_part_key."""
+        offers_data = MOCK_OFFERS.get(normalized_part_key, [])
         if not offers_data:
-            log.info("mock_connector_no_offer", part_key=line.normalized_part_key)
+            log.info("mock_connector_no_offer", part_key=normalized_part_key)
             return []
 
         now = datetime.now(UTC)
@@ -80,9 +96,9 @@ class MockConnector:
                 source="api",
                 tier="A",
                 captured_at=now,
-                normalized_part_key=line.normalized_part_key,
+                normalized_part_key=normalized_part_key,
                 supplier_id=str(offer["supplier_id"]),
-                category=str(offer["category"]) if offer.get("category") else None,
+                category=str(offer["category"]) if offer.get("category") else category,
                 price_ladder=price_ladder,
                 moq=int(offer["moq"]) if offer.get("moq") is not None else None,  # type: ignore[arg-type]
                 lead_time=None,

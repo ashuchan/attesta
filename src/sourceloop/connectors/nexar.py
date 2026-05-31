@@ -232,24 +232,46 @@ class NexarConnector:
         return bool(line.mpn and self.enabled)
 
     async def fetch(self, line: BomLine) -> list[OfferObservation]:
+        """Adapter: delegates to fetch_mpn using BomLine fields."""
+        return await self.fetch_mpn(
+            mpn=line.mpn or "",
+            manufacturer=line.manufacturer,
+            normalized_part_key=line.normalized_part_key,
+            category=line.raw_description,
+        )
+
+    async def fetch_mpn(
+        self,
+        mpn: str,
+        manufacturer: str | None,
+        normalized_part_key: str,
+        category: str | None,
+    ) -> list[OfferObservation]:
+        """Primary fetch primitive — used directly by warmup and via fetch() by sourcing."""
         if not self.enabled or self._client is None:
             log.warning("nexar_disabled", reason="no_credentials_or_disabled")
             return []
 
-        if not line.mpn:
+        if not mpn:
             return []
 
         variables = {
-            "mpn": line.mpn,
+            "mpn": mpn,
             "limit": self._limit,
             "country": self._country,
             "currency": self._currency,
         }
-        log.info("nexar_request", mpn=line.mpn)
+        log.info("nexar_request", mpn=mpn)
         data = await self._client.query(variables)
-        return self._map_response(data, line)
+        return self._map_response(data, mpn=mpn, normalized_part_key=normalized_part_key, fallback_category=category)
 
-    def _map_response(self, data: dict[str, Any], line: BomLine) -> list[OfferObservation]:
+    def _map_response(
+        self,
+        data: dict[str, Any],
+        mpn: str,
+        normalized_part_key: str,
+        fallback_category: str | None,
+    ) -> list[OfferObservation]:
         """Map seller x offer → one OfferObservation each."""
         search_result = data.get("supSearchMpn", {})
         hits = search_result.get("hits", 0)
@@ -263,7 +285,7 @@ class NexarConnector:
         for result in results:
             part = result.get("part", {})
             category_obj = part.get("category") or {}
-            category = category_obj.get("name") or line.raw_description
+            category = category_obj.get("name") or fallback_category
 
             specs = {}
             for spec in part.get("specs", []):
@@ -284,7 +306,7 @@ class NexarConnector:
 
                     # Synthesize stable URL when clickUrl is absent
                     if not click_url:
-                        click_url = f"nexar:{company_id}:{line.mpn}:{sku}"
+                        click_url = f"nexar:{company_id}:{mpn}:{sku}"
 
                     # Build price ladder sorted by quantity
                     prices = offer.get("prices", [])
@@ -305,7 +327,7 @@ class NexarConnector:
                         source="api",
                         tier="A",
                         captured_at=now,
-                        normalized_part_key=line.normalized_part_key,
+                        normalized_part_key=normalized_part_key,
                         supplier_id=supplier_id,
                         category=category,
                         price_ladder=price_ladder,
@@ -318,7 +340,7 @@ class NexarConnector:
                             "company_name": company_name,
                         },
                         screenshot_ref=None,
-                        confidence=None,  # NullConfidence — Step 2
+                        confidence=None,  # scored in OfferStore.append_many
                         field_captured_at={
                             "price_ladder": now.isoformat(),
                             "stock": now.isoformat(),

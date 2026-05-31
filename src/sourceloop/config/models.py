@@ -55,6 +55,29 @@ class RefreshPoliciesConfig(BaseModel):
     B: dict[str, RefreshFieldPolicy]
 
 
+class ScoringStrategyEntry(BaseModel):
+    signals: list[str]
+    weights: dict[str, float]
+    aggregator: str
+    bands: dict[str, float] = Field(default_factory=lambda: {"high": 80.0, "medium": 50.0})
+    hard_flags: list[str] = Field(default_factory=list)
+
+
+class RuleEntry(BaseModel):
+    when: str
+    then: str
+
+
+class WarmupPacingConfig(BaseModel):
+    max_calls_per_day: int = 200
+    spread_over_hours: int = 8
+    max_rps_fraction: float = 0.5
+
+
+class WarmupConfig(BaseModel):
+    pacing: WarmupPacingConfig = Field(default_factory=WarmupPacingConfig)
+
+
 class AppSettings(BaseModel):
     bom_sla_minutes: int = 90
     default_limit: int = 3

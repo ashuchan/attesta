@@ -17,3 +17,12 @@ class DistributorConnector(Protocol):
 
     async def fetch(self, line: BomLine) -> list[OfferObservation]:
         ...
+
+    async def fetch_mpn(
+        self,
+        mpn: str,
+        manufacturer: str | None,
+        normalized_part_key: str,
+        category: str | None,
+    ) -> list[OfferObservation]:
+        ...

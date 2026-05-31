@@ -9,6 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .tenant_scoped import TenantScopedRepository
 
 
+
+
+
 class DemandRepository(TenantScopedRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
@@ -35,3 +38,21 @@ class DemandRepository(TenantScopedRepository):
                 "ts": now,
             },
         )
+
+    async def hotness_feed(
+        self, since: datetime
+    ) -> list[tuple[str, str | None, datetime]]:
+        """
+        De-identified feed: (normalized_part_key, category, ts).
+        NO tenant/customer identifiers — reads cross-tenant by design (hotness is global).
+        """
+        result = await self._session.execute(
+            text("""
+                SELECT normalized_part_key, category, ts
+                FROM demand_event
+                WHERE ts >= :since
+                ORDER BY ts DESC
+            """),
+            {"since": since},
+        )
+        return [(row[0], row[1], row[2]) for row in result.fetchall()]

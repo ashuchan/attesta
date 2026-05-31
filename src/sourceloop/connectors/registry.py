@@ -48,3 +48,7 @@ class ConnectorRegistry:
     def connectors_for(self, line: BomLine) -> list[DistributorConnector]:
         """Return enabled connectors that support this BomLine, sorted by priority."""
         return [c for c in self._connectors if c.supports(line)]
+
+    def connectors_for_mpn(self, mpn: str) -> list[DistributorConnector]:
+        """Return all enabled connectors (for warmup / direct MPN fetch)."""
+        return [c for c in self._connectors if mpn]

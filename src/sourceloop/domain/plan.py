@@ -29,3 +29,4 @@ class SourcedPlan:
     tier_a_coverage_pct: float
     status: str
     lines: list[PlanLine]
+    confidence_summary: dict | None = None  # {"high": N, "medium": N, "low": N, "unsourced": N}

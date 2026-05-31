@@ -49,7 +49,10 @@ class SourcingService:
         self._session = session
         self._registry = registry or ConnectorRegistry()
         self._classifier = classifier or ClassifierChain()
-        self._store = OfferStore(session)
+        # Wire in the scoring engine for write-time confidence scoring
+        from sourceloop.scoring.factory import build_confidence_provider
+        confidence_provider = build_confidence_provider()
+        self._store = OfferStore(session, confidence_provider=confidence_provider)  # type: ignore[arg-type]
         self._bom_repo = BomRepository(session)
         self._plan_repo = PlanRepository(session)
         self._demand_repo = DemandRepository(session)

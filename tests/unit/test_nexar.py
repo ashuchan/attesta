@@ -351,7 +351,7 @@ def test_nexar_connector_maps_seller_x_offer():
     """One seller with 2 offers → 2 OfferObservation objects."""
     connector = _make_nexar_connector()
     line = _make_line()
-    observations = connector._map_response(NEXAR_FIXTURE_RESPONSE, line)
+    observations = connector._map_response(NEXAR_FIXTURE_RESPONSE, mpn="STM32F103C8T6", normalized_part_key="mpn:STM32F103C8T6", fallback_category="MCU")
 
     assert len(observations) == 2
     obs1, obs2 = observations
@@ -371,15 +371,19 @@ def test_nexar_connector_null_click_url_synthesized():
     """When clickUrl is None, a stable surrogate URL is synthesized."""
     connector = _make_nexar_connector()
     line = _make_line()
-    observations = connector._map_response(NEXAR_FIXTURE_RESPONSE, line)
+    observations = connector._map_response(NEXAR_FIXTURE_RESPONSE, mpn="STM32F103C8T6", normalized_part_key="mpn:STM32F103C8T6", fallback_category="MCU")
     assert len(observations) == 2
     # Both should succeed without error
 
 
 def test_nexar_connector_zero_hits_returns_empty():
     connector = _make_nexar_connector()
-    line = _make_line("UNKNOWN")
-    result = connector._map_response({"supSearchMpn": {"hits": 0, "results": []}}, line)
+    result = connector._map_response(
+        {"supSearchMpn": {"hits": 0, "results": []}},
+        mpn="UNKNOWN",
+        normalized_part_key="mpn:UNKNOWN",
+        fallback_category=None,
+    )
     assert result == []
 
 
@@ -459,21 +463,21 @@ def test_nexar_connector_not_supports_no_mpn():
 def test_nexar_connector_specs_mapped():
     connector = _make_nexar_connector()
     line = _make_line()
-    observations = connector._map_response(NEXAR_FIXTURE_RESPONSE, line)
+    observations = connector._map_response(NEXAR_FIXTURE_RESPONSE, mpn="STM32F103C8T6", normalized_part_key="mpn:STM32F103C8T6", fallback_category="MCU")
     assert observations[0].specs.get("volt") == "3.3V"
 
 
 def test_nexar_connector_category_from_response():
     connector = _make_nexar_connector()
     line = _make_line()
-    observations = connector._map_response(NEXAR_FIXTURE_RESPONSE, line)
+    observations = connector._map_response(NEXAR_FIXTURE_RESPONSE, mpn="STM32F103C8T6", normalized_part_key="mpn:STM32F103C8T6", fallback_category="MCU")
     assert observations[0].category == "MCU"
 
 
 def test_nexar_connector_stock_mapped():
     connector = _make_nexar_connector()
     line = _make_line()
-    observations = connector._map_response(NEXAR_FIXTURE_RESPONSE, line)
+    observations = connector._map_response(NEXAR_FIXTURE_RESPONSE, mpn="STM32F103C8T6", normalized_part_key="mpn:STM32F103C8T6", fallback_category="MCU")
     assert observations[0].stock == 500
     assert observations[1].stock == 200
 
@@ -481,4 +485,4 @@ def test_nexar_connector_stock_mapped():
 def test_nexar_connector_empty_data_returns_empty():
     connector = _make_nexar_connector()
     line = _make_line()
-    assert connector._map_response({}, line) == []
+    assert connector._map_response({}, mpn="STM32F103C8T6", normalized_part_key="mpn:STM32F103C8T6", fallback_category=None) == []
