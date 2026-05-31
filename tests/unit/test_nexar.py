@@ -161,7 +161,7 @@ async def test_nexar_client_429_respects_retry_after():
         instance.post = AsyncMock(side_effect=fake_post)
         MockClient.return_value = instance
         with patch("asyncio.sleep", AsyncMock()):
-            result = await client.query({"mpn": "TEST", "limit": 3, "country": "IN", "currency": "INR"})
+            await client.query({"mpn": "TEST", "limit": 3, "country": "IN", "currency": "INR"})
 
     assert call_num == 2
 
@@ -195,7 +195,7 @@ async def test_nexar_client_5xx_retries():
         instance.post = AsyncMock(side_effect=fake_post)
         MockClient.return_value = instance
         with patch("asyncio.sleep", AsyncMock()):
-            result = await client.query({"mpn": "X", "limit": 3, "country": "IN", "currency": "INR"})
+            await client.query({"mpn": "X", "limit": 3, "country": "IN", "currency": "INR"})
 
     assert call_num == 3
 

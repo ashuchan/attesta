@@ -77,7 +77,7 @@ async def test_pipeline_llm_repair_not_called_for_high_confidence():
     # so we patch the module it lives in
     import sourceloop.parsing.llm_repair as llm_repair_mod
     with patch.object(llm_repair_mod, "repair", new_callable=AsyncMock) as mock_repair:
-        result = await parser.parse(source)
+        await parser.parse(source)
     # parse_confidence = 0.5 + 0.3(mpn) + 0.1(qty) + 0.1(desc) = 1.0 >= 0.5 threshold → no repair
     mock_repair.assert_not_called()
 

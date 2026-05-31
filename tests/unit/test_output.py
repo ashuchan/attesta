@@ -76,7 +76,7 @@ def test_render_plan_unsourced_reason_serialized():
     plan = make_plan()
     output = render_plan(plan)
     data = json.loads(output)
-    unsourced = [l for l in data["lines"] if l["unsourced_reason"]]
+    unsourced = [ln for ln in data["lines"] if ln["unsourced_reason"]]
     assert unsourced[0]["unsourced_reason"] == "no_tier_a_offers"
 
 

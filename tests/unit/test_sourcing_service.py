@@ -133,7 +133,7 @@ async def test_sourcing_service_cache_miss_calls_connector():
     mock_connector.fetch = AsyncMock(return_value=[obs])
     service._registry.connectors_for = MagicMock(return_value=[mock_connector])
 
-    plan = await service.source_bom(bom_id)
+    await service.source_bom(bom_id)
 
     mock_connector.fetch.assert_called_once()
     service._store.append.assert_called_once_with(obs)
@@ -172,7 +172,7 @@ async def test_sourcing_service_dedup_same_mpn():
     mock_connector.fetch = AsyncMock(return_value=[obs])
     service._registry.connectors_for = MagicMock(return_value=[mock_connector])
 
-    plan = await service.source_bom(bom_id)
+    await service.source_bom(bom_id)
 
     assert mock_connector.fetch.call_count == 1
 
@@ -248,7 +248,7 @@ async def test_sourcing_service_tier_b_not_sourced():
 @pytest.mark.asyncio
 async def test_sourcing_service_no_lines():
     """Empty BOM returns plan with 0 lines."""
-    tid = setup_tenant()
+    setup_tenant()
     bom_id = uuid.uuid4()
     session = make_mock_session()
 

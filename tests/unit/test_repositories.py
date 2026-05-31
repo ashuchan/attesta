@@ -258,7 +258,7 @@ async def test_bom_repo_get_lines():
 @pytest.mark.asyncio
 async def test_bom_repo_update_status():
     from sourceloop.repositories.bom_repo import BomRepository
-    tid = setup_tenant()
+    setup_tenant()
     session = MagicMock()
     mock_result = MagicMock()
     session.execute = AsyncMock(return_value=mock_result)
@@ -318,7 +318,7 @@ def test_plan_repo_line_row_to_domain_with_unsourced_reason():
 @pytest.mark.asyncio
 async def test_demand_repo_emit():
     from sourceloop.repositories.demand_repo import DemandRepository
-    tid = setup_tenant()
+    setup_tenant()
     session = MagicMock()
     mock_result = MagicMock()
     session.execute = AsyncMock(return_value=mock_result)
@@ -331,7 +331,7 @@ async def test_demand_repo_emit():
 @pytest.mark.asyncio
 async def test_demand_repo_emit_with_customer():
     from sourceloop.repositories.demand_repo import DemandRepository
-    tid = setup_tenant()
+    setup_tenant()
     session = MagicMock()
     session.execute = AsyncMock(return_value=MagicMock())
     repo = DemandRepository(session)
@@ -400,7 +400,7 @@ async def test_bom_repo_get_bom_found():
 @pytest.mark.asyncio
 async def test_bom_repo_get_bom_not_found():
     from sourceloop.repositories.bom_repo import BomRepository
-    tid = setup_tenant()
+    setup_tenant()
     session = MagicMock()
 
     mock_result = MagicMock()
@@ -530,7 +530,7 @@ async def test_supplier_repo_upsert():
 @pytest.mark.asyncio
 async def test_plan_repo_get_plan_not_found():
     from sourceloop.repositories.plan_repo import PlanRepository
-    tid = setup_tenant()
+    setup_tenant()
     session = MagicMock()
 
     mock_result = MagicMock()
