@@ -50,5 +50,7 @@ class ConnectorRegistry:
         return [c for c in self._connectors if c.supports(line)]
 
     def connectors_for_mpn(self, mpn: str) -> list[DistributorConnector]:
-        """Return all enabled connectors (for warmup / direct MPN fetch)."""
-        return [c for c in self._connectors if mpn]
+        """Return enabled connectors that support a direct MPN fetch (warmup path)."""
+        if not mpn:
+            return []
+        return [c for c in self._connectors if c.enabled and hasattr(c, "fetch_mpn")]

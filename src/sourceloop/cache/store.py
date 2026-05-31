@@ -90,8 +90,14 @@ class OfferStore:
                     tier=obs.tier,
                 )
 
-                # Score confidence at write-time
-                confidence_val = self._confidence.score(obs)
+                # Score confidence at write-time; capture full result once for both
+                # the stored confidence value and the score_log provenance write.
+                score_result_obj = (
+                    self._confidence.score_result(obs)
+                    if isinstance(self._confidence, EngineConfidenceProvider)
+                    else None
+                )
+                confidence_val = float(score_result_obj.score) if score_result_obj is not None else self._confidence.score(obs)  # type: ignore[attr-defined]
                 scored_obs = dataclasses.replace(obs, listing_id=actual_listing_id, confidence=confidence_val)
 
                 # Append observation
@@ -101,7 +107,7 @@ class OfferStore:
 
                 # Write score provenance if engine provider (duck-typed — not in Protocol)
                 if isinstance(self._confidence, EngineConfidenceProvider):
-                    score_result = self._confidence.score_result(obs)
+                    score_result = score_result_obj
                     if score_result is not None:
                         try:
                             await self._score_log_repo.write(
