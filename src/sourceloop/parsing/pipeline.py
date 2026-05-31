@@ -1,12 +1,15 @@
 from __future__ import annotations
-import uuid
+
 import dataclasses
+import uuid
+
 import structlog
-from sourceloop.parsing.base import ParseSource
-from sourceloop.parsing.orchestrator import ParserOrchestrator
-from sourceloop.parsing.normalizer import normalize
-from sourceloop.parsing.part_key import derive
+
 from sourceloop.domain.bom import ParseResult
+from sourceloop.parsing.base import ParseSource
+from sourceloop.parsing.normalizer import normalize
+from sourceloop.parsing.orchestrator import ParserOrchestrator
+from sourceloop.parsing.part_key import derive
 from sourceloop.tenancy.context import TenantContext
 
 log = structlog.get_logger()
@@ -55,7 +58,7 @@ class BomParser:
             keyed_lines.append(dataclasses.replace(line, normalized_part_key=key))
 
         avg_confidence = (
-            sum(l.parse_confidence for l in keyed_lines) / len(keyed_lines)
+            sum(ln.parse_confidence for ln in keyed_lines) / len(keyed_lines)
             if keyed_lines else 0.0
         )
 

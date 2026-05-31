@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 import io
 from typing import Any
+
 from sourceloop.parsing.base import ParseSource, RawRowSet
 
 XLSX_MAGIC = b"PK\x03\x04"
@@ -51,7 +53,7 @@ class XlsxParser:
     def _score_sheet(self, ws: Any) -> int:
         """Score a sheet by counting BOM header keyword matches in first 5 rows."""
         score = 0
-        for row_idx, row in enumerate(ws.iter_rows(max_row=5, values_only=True)):
+        for row in ws.iter_rows(max_row=5, values_only=True):
             for cell in row:
                 if cell and str(cell).strip().lower() in BOM_HEADER_KEYWORDS:
                     score += 1

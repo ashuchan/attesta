@@ -1,12 +1,16 @@
 from __future__ import annotations
+
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sourceloop.db.tables import ListingRow, OfferObservationRow, CurrentOfferRow
-from sourceloop.domain.offer import OfferObservation, CurrentOffer, PriceLadder
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from sourceloop.db.tables import CurrentOfferRow, ListingRow
+from sourceloop.domain.offer import CurrentOffer, OfferObservation, PriceLadder
+
 from .base import AbstractRepository
 
 
@@ -35,7 +39,7 @@ class OfferRepository(AbstractRepository[CurrentOffer]):
         tier: str,
     ) -> uuid.UUID:
         """Upsert listing by url (UNIQUE). Returns listing_id."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         stmt = pg_insert(ListingRow).values(
             listing_id=listing_id,
             url=url,
@@ -57,22 +61,6 @@ class OfferRepository(AbstractRepository[CurrentOffer]):
 
     async def append_observation(self, obs: OfferObservation) -> None:
         """Append-only insert. Never updates an existing observation."""
-        row = OfferObservationRow(
-            obs_id=obs.listing_id,  # will be overridden by uuid4 default from DB
-            captured_at=obs.captured_at,
-            listing_id=obs.listing_id,
-            source=obs.source,
-            price_ladder=self._ladder_to_json(obs.price_ladder),
-            moq=obs.moq,
-            lead_time=obs.lead_time,
-            stock=obs.stock,
-            specs=obs.specs,
-            supplier_snapshot=obs.supplier_snapshot,
-            screenshot_ref=obs.screenshot_ref,
-            confidence=obs.confidence,
-            category=obs.category,
-            field_captured_at=obs.field_captured_at,
-        )
         # Use raw SQL for partitioned table insert — SQLAlchemy ORM insert may not
         # route correctly to the right partition in all versions
         from sqlalchemy import text

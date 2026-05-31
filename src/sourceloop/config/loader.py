@@ -1,10 +1,18 @@
 from __future__ import annotations
+
 from functools import lru_cache
 from pathlib import Path
+
 import yaml
+
 from .models import (
-    ConnectorsConfig, ParsersConfig, ClassifiersConfig,
-    RefreshPoliciesConfig, AppSettings, EnvSettings,
+    AppSettings,
+    ClassifiersConfig,
+    ConnectorEntry,
+    ConnectorsConfig,
+    EnvSettings,
+    ParsersConfig,
+    RefreshPoliciesConfig,
 )
 
 CONFIG_DIR = Path(__file__).parent.parent.parent.parent / "config"
